@@ -60,7 +60,8 @@ function folderOfProject(dir) {
       const n = fs.readSync(fd, buf, 0, buf.length, 0);
       for (const line of buf.subarray(0, n).toString('utf8').split('\n')) {
         if (!line.includes('"cwd"')) continue;
-        try { const cwd = JSON.parse(line).cwd; if (cwd) return path.basename(cwd); } catch { /* 잘린 줄 */ }
+        // path.basename 은 맥·리눅스에서 Windows 경로(C:\…)를 못 나눠서 \ 와 / 를 함께 나눈다
+        try { const cwd = JSON.parse(line).cwd; if (cwd) return cwd.split(/[\\/]/).filter(Boolean).pop(); } catch { /* 잘린 줄 */ }
       }
     } catch { /* 못 읽는 파일 */ } finally { if (fd !== undefined) fs.closeSync(fd); }
   }
