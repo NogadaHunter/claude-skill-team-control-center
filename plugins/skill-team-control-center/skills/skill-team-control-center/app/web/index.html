@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Skill Team Control Center</title>
+<meta name="description" content="Claude Code 직원(에이전트)·스킬의 실시간 상태, 작업 건수, 토큰·API 환산 비용을 한눈에 보는 로컬 대시보드">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<script>try { const t = localStorage.getItem('amc.theme'); if (t) document.documentElement.dataset.theme = t; } catch {}</script>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="16" cy="16" r="12" opacity=".35"/><circle cx="16" cy="16" r="6.5" opacity=".65"/><path d="M16 16 L25.5 8"/></g><circle cx="22.5" cy="10.5" r="2.4" fill="currentColor"/></svg>
+    <h1>Claude Skill Team Control Center</h1>
+    <nav class="seg tabs" id="view" aria-label="화면">
+      <button type="button" data-v="board">관제판</button>
+      <button type="button" data-v="flow">워크플로</button>
+      <button type="button" data-v="skills">스킬 DB</button>
+      <button type="button" data-v="office">사무실 라이브</button>
+    </nav>
+  </div>
+  <div class="live" id="live" aria-live="polite">
+    <span class="live-badge off" id="live-badge"><i></i>연결 중</span>
+    <span class="chip ok" id="cnt-working" title="일하는 중">일하는 중 0</span>
+    <span class="chip warn" id="cnt-decision" title="승인 대기">승인 대기 0</span>
+    <span class="chip" id="cnt-rest" title="쉬는 중">쉬는 중 0</span>
+  </div>
+  <div class="controls">
+    <div class="seg" id="range" role="group" aria-label="기간">
+      <button type="button" data-v="today">오늘</button>
+      <button type="button" data-v="7d">7일</button>
+      <button type="button" data-v="30d">30일</button>
+      <button type="button" data-v="all">전체</button>
+    </div>
+    <span id="updated" class="faint"></span>
+    <button type="button" id="refresh" class="icon-btn" aria-label="새로 고침" title="새로 고침">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
+    </button>
+    <button type="button" id="report-btn" class="btn" title="지금 현황을 A4 비즈니스 리포트로 — 인쇄하거나 PDF로 저장">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
+      리포트
+    </button>
+    <button type="button" id="bell" class="icon-btn bell" aria-label="알림·예산" title="알림·예산">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      <span id="bell-n" class="badge" hidden></span>
+    </button>
+    <button type="button" id="theme" class="icon-btn" aria-label="밝게·어둡게 바꾸기" title="밝게·어둡게"></button>
+  </div>
+</header>
+
+<main>
+  <div id="banner" class="banner" hidden role="status"></div>
+  <div id="loading" class="loading">
+    <div>Claude Code 대화 기록을 읽고 있어요. 처음 한 번만 조금 걸려요.</div>
+    <div class="bar"><i id="loadbar"></i></div>
+    <div id="loadtext" class="faint num"></div>
+  </div>
+
+  <div id="content" hidden>
+    <div id="view-board" class="view">
+      <section class="kpis" id="kpis" aria-label="핵심 지표"></section>
+
+      <section class="bento">
+        <article class="card">
+          <header>
+            <h2 id="chart-title">토큰·비용 흐름</h2>
+            <div class="seg small" id="metric" role="group" aria-label="지표">
+              <button type="button" data-v="cost">비용</button>
+              <button type="button" data-v="tokens">토큰</button>
+            </div>
+            <div class="seg small" id="split" role="group" aria-label="나누기">
+              <button type="button" data-v="group">그룹별</button>
+              <button type="button" data-v="staff">직원별</button>
+            </div>
+          </header>
+          <div id="legend" class="legend"></div>
+          <div id="chart" class="chart"></div>
+        </article>
+        <article class="card feed-card">
+          <header>
+            <h2>실시간 활동</h2>
+            <div class="seg small" id="feedscope" role="group" aria-label="활동 범위">
+              <button type="button" data-v="team">직원·팀장</button>
+              <button type="button" data-v="all">전체</button>
+            </div>
+          </header>
+          <div id="feed" class="feed" aria-live="off"></div>
+        </article>
+      </section>
+
+      <section class="card">
+        <header><h2>운영 제언</h2><span class="faint" id="advice-sub"></span></header>
+        <div id="advice" class="advice-list"></div>
+      </section>
+
+      <section>
+        <div class="section-head"><h2 id="roster-title">직원</h2><span class="faint">카드를 누르면 목적·워크플로·맡은 스킬·작업 기록을 봐요</span></div>
+        <div class="roster" id="roster"></div>
+      </section>
+
+      <section class="bento two">
+        <article class="card">
+          <header><h2>최근 직원 작업</h2><span class="faint">기본 에이전트 포함 30건 · 누르면 단계 타임라인</span></header>
+          <div id="runs" class="rows runs"></div>
+        </article>
+        <div class="stackcol">
+          <article class="card">
+            <header><h2>누가 썼나</h2><span class="faint" id="who-sub"></span></header>
+            <div id="groups" class="bars"></div>
+            <h3>모델별</h3>
+            <div id="models" class="bars"></div>
+          </article>
+          <article class="card">
+            <header><h2>스킬 사용 순위</h2><span class="faint" id="skills-sub"></span></header>
+            <div id="skills" class="rows skills"></div>
+            <div id="unused"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="card">
+        <header><h2>팀장·기본 에이전트·그 밖의 세션</h2><span class="faint">직원 말고 토큰을 쓴 곳</span></header>
+        <div id="others"></div>
+      </section>
+
+      <footer class="notes">
+        <b>읽는 법</b>
+        <ul>
+          <li>비용은 Claude API 공식 단가로 계산한 <b>환산값</b>이에요. 구독 요금제로 쓰면 실제 청구액이 아니에요. 단가·환율·월 예산은 <code>config/pricing.json</code>에서 고쳐요.</li>
+          <li>직원 토큰은 직원(서브에이전트)이 쓴 기록만 정확히 센 값이에요. 스킬 토큰은 스킬을 부른 뒤 다음 요청까지 쓴 토큰을 그 스킬 몫으로 본 <b>추정값</b>이에요.</li>
+          <li>실시간 상태는 2초마다 갱신돼요. 승인 대기는 3D 사무실 훅이 있어야 알 수 있어요.</li>
+          <li>claude.ai 웹·앱에서 쓴 스킬은 이 PC 기록에 없어서 빠져요.</li>
+          <li>직원의 목적·목표·워크플로는 <code>config/profiles.json</code>, 맡은 스킬은 <code>~/.claude/agents/*.md</code> 표에서 읽어요.</li>
+        </ul>
+      </footer>
+    </div>
+
+    <div id="view-flow" class="view" hidden>
+      <section class="card">
+        <header><h2 id="flow-title">팀 워크플로 지도</h2><span class="faint" id="flow-sub"></span></header>
+        <div id="flow-line" class="flowline"></div>
+        <div id="flowmap" class="flowmap"></div>
+        <div class="flow-note faint">선 굵기는 횟수예요. 초록으로 흐르는 선은 지금 일하는 중이에요. 팀장·직원 카드를 누르면 실제 작업 패턴을 봐요.</div>
+      </section>
+      <section class="card">
+        <header>
+          <h2>실행 기록</h2><span class="faint" id="tracelist-sub">누르면 단계 타임라인(트레이스)을 봐요</span>
+          <div class="seg small" id="runfilter" role="group" aria-label="실행 종류">
+            <button type="button" data-v="all">전체</button>
+            <button type="button" data-v="staff">직원 작업</button>
+            <button type="button" data-v="lead">팀장 요청</button>
+          </div>
+        </header>
+        <div id="tracelist" class="rows runs tracelist"></div>
+      </section>
+    </div>
+
+    <div id="view-skills" class="view" hidden>
+      <section class="card skilldb-head">
+        <div class="grow">
+          <h2>스킬 DB × 실제 사용</h2>
+          <p class="muted" id="skilldb-sub">스킬 DB 엑셀을 읽고 있어요…</p>
+        </div>
+        <a id="skilldb-export" class="btn primary" href="/api/export/skills.xlsx" download>사용 현황 엑셀로 받기
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>
+        </a>
+      </section>
+      <section class="kpis" id="skilldb-kpis" aria-label="스킬 DB 요약"></section>
+      <section class="bento two">
+        <article class="card">
+          <header>
+            <h2>스킬 목록</h2>
+            <input type="search" id="skillq" class="search" placeholder="이름·ID·카테고리 찾기" aria-label="스킬 찾기">
+            <div class="seg small" id="skillfilter" role="group" aria-label="보기">
+              <button type="button" data-v="all">전체</button>
+              <button type="button" data-v="used">쓴 스킬</button>
+              <button type="button" data-v="unused">안 쓴 스킬</button>
+              <button type="button" data-v="flag">확인할 것</button>
+            </div>
+          </header>
+          <div id="skilldb-table" class="rows skilldb"></div>
+        </article>
+        <div class="stackcol">
+          <article class="card">
+            <header><h2>카테고리별</h2><span class="faint" id="skilldb-cat-sub"></span></header>
+            <div id="skilldb-cats" class="bars"></div>
+          </article>
+          <article class="card">
+            <header><h2>DB 밖 스킬</h2><span class="faint">엑셀에 없는 스킬</span></header>
+            <div id="skilldb-missing"></div>
+          </article>
+        </div>
+      </section>
+    </div>
+
+    <div id="view-office" class="view" hidden>
+      <section class="card office-head">
+        <div>
+          <h2>사무실 라이브</h2>
+          <p class="muted" id="office-sub">3D 사무실이 보는 세션 상태를 그대로 보여 줘요.</p>
+        </div>
+        <a id="office-open" class="btn primary" href="http://127.0.0.1:4777" target="_blank" rel="noopener">3D로 보기
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>
+        </a>
+      </section>
+      <div id="office-body"></div>
+    </div>
+  </div>
+</main>
+
+<div id="tip" class="tip" hidden></div>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+<div id="scrim" class="scrim" hidden></div>
+<aside id="drawer" class="drawer" hidden role="dialog" aria-modal="true" aria-labelledby="drawer-title"></aside>
+<script type="module" src="app.js"></script>
+</body>
+</html>

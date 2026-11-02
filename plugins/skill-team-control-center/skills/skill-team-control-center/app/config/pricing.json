@@ -1,0 +1,20 @@
+{
+  "_안내": "Claude API 공식 단가(100만 토큰당 달러, 2026-10 기준)예요. 구독 요금제로 쓰면 실제 청구액이 아니라 'API로 썼다면 얼마였을지' 환산값이에요. 환율은 직접 고치세요. 월 예산·알림 기준은 화면의 🔔 알림·예산에서 정해요(config/budget.json에 저장). 아래 monthlyBudgetUsd는 budget.json이 없을 때만 쓰는 옛 칸이에요.",
+  "usdToKrw": 1400,
+  "monthlyBudgetUsd": null,
+  "fallbackModel": "claude-opus-5-5",
+  "models": {
+    "claude-fable-5-1":  { "input": 10,  "output": 50,  "cacheWrite5m": 12.5,  "cacheWrite1h": 20,  "cacheRead": 0.25 },
+    "claude-fable-5":    { "input": 10,  "output": 50,  "cacheWrite5m": 12.5,  "cacheWrite1h": 20,  "cacheRead": 1 },
+    "claude-opus-5-5":   { "input": 4,   "output": 20,  "cacheWrite5m": 5,     "cacheWrite1h": 8,   "cacheRead": 0.2 },
+    "claude-opus-5":     { "input": 5,   "output": 25,  "cacheWrite5m": 6.25,  "cacheWrite1h": 10,  "cacheRead": 0.5 },
+    "claude-opus-4-8":   { "input": 5,   "output": 25,  "cacheWrite5m": 6.25,  "cacheWrite1h": 10,  "cacheRead": 0.5 },
+    "claude-opus-4-7":   { "input": 5,   "output": 25,  "cacheWrite5m": 6.25,  "cacheWrite1h": 10,  "cacheRead": 0.5 },
+    "claude-opus-4-6":   { "input": 5,   "output": 25,  "cacheWrite5m": 6.25,  "cacheWrite1h": 10,  "cacheRead": 0.5 },
+    "claude-sonnet-5-5": { "input": 2,   "output": 10,  "cacheWrite5m": 2.5,   "cacheWrite1h": 4,   "cacheRead": 0.2 },
+    "claude-sonnet-5":   { "input": 2,   "output": 10,  "cacheWrite5m": 2.5,   "cacheWrite1h": 4,   "cacheRead": 0.2 },
+    "claude-sonnet-4-6": { "input": 3,   "output": 15,  "cacheWrite5m": 3.75,  "cacheWrite1h": 6,   "cacheRead": 0.3 },
+    "claude-haiku-5-5":  { "input": 0.1, "output": 0.5, "cacheWrite5m": 0.125, "cacheWrite1h": 0.2, "cacheRead": 0.01 },
+    "claude-haiku-4-5":  { "input": 1,   "output": 5,   "cacheWrite5m": 1.25,  "cacheWrite1h": 2,   "cacheRead": 0.1 }
+  }
+}

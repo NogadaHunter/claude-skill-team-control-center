@@ -1,0 +1,25 @@
+{
+  "name": "skill-team-control-center",
+  "displayName": "Claude Skill Team Control Center",
+  "version": "1.1.0",
+  "description": "Claude Code 스킬팀(서브에이전트 직원·스킬)의 현황·토큰·API 환산 비용·실시간 상태·워크플로·예산 알림·A4 리포트·운영 제언을 한 화면에서 보고 말로 조작하는 로컬 관제 대시보드",
+  "author": {
+    "name": "피플웨어교육컨설팅그룹 · AI프롬프트연구소"
+  },
+  "homepage": "https://github.com/NogadaHunter/claude-skill-team-control-center",
+  "repository": "https://github.com/NogadaHunter/claude-skill-team-control-center",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "subagents",
+    "skills",
+    "dashboard",
+    "token",
+    "cost",
+    "budget",
+    "report",
+    "스킬팀",
+    "대시보드",
+    "korean"
+  ]
+}
