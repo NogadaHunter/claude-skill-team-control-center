@@ -1,0 +1,17 @@
+{
+  "name": "claude-skill-team-control-center",
+  "version": "1.1.0",
+  "description": "Claude Skill Team Control Center — Claude Code 스킬팀 관제 대시보드 플러그인(저장소 도구용)",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node tools/run-tests.mjs",
+    "check": "node tools/check-repo.mjs",
+    "demo": "node tools/demo.mjs",
+    "screenshots": "node tools/screenshots.mjs"
+  }
+}
